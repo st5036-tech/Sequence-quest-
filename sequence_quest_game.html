@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequence Quest: The Order Masters</title>
+    <!-- Tailwind CSS Engine CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        quest: {
+                            blue: '#3B82F6',
+                            purple: '#8B5CF6',
+                            emerald: '#10B981',
+                            amber: '#F59E0B',
+                            rose: '#EF4444',
+                            indigo: '#6366F1',
+                            bg: '#F3F4F6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        heading: ['Fredoka', 'Quicksand', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F4F8;
+            background-image: radial-gradient(#E2E8F0 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+
+        .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .btn-bounce {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-bounce:hover {
+            transform: translateY(-2px);
+        }
+        .btn-bounce:active {
+            transform: translateY(1px);
+        }
+
+        .correct-anim {
+            animation: pulse-green 0.6s ease-in-out;
+        }
+
+        .incorrect-anim {
+            animation: shake-red 0.5s ease-in-out;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake-red {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* Print formatting optimization */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .glass-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-heading text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                        SEQUENCE QUEST
+                    </h1>
+                    <p class="text-xs font-semibold text-slate-500 tracking-wider uppercase">The Order Masters • English Mission</p>
+                </div>
+            </div>
+
+            <!-- Controls & Quick Actions -->
+            <div class="flex items-center gap-3">
+                <button onclick="toggleToolkit()" class="btn-bounce bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-sm">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <span>Connector Toolkit</span>
+                </button>
+
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition">
+                    <svg id="soundIconOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    </svg>
+                    <svg id="soundIconOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- SETUP SCREEN -->
+        <div id="setupScreen" class="max-w-3xl mx-auto space-y-6">
+            <div class="glass-card rounded-3xl p-8 border border-white shadow-xl text-center">
+                <div class="inline-flex p-3 rounded-2xl bg-indigo-50 text-indigo-600 mb-4">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="font-heading text-3xl font-bold text-slate-800">Mission Setup: Team Registration</h2>
+                <p class="text-slate-600 mt-2 max-w-xl mx-auto text-sm sm:text-base">
+                    Welcome Mission Coordinators! Configure your classroom teams to start repairing scrambled operations using correct sequence connectors.
+                </p>
+
+                <!-- Team Count Selector -->
+                <div class="mt-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 uppercase tracking-wide mb-3">Select Number of Teams</label>
+                    <div class="flex justify-center gap-3" id="teamCountSelector">
+                        <button onclick="setTeamCount(3)" class="team-count-btn w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-slate-200 bg-white hover:border-indigo-500 transition">3</button>
+                        <button onclick="setTeamCount(4)" class="team-count-btn active w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200 transition">4</button>
+                        <button onclick="setTeamCount(5)" class="team-count-btn w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-slate-200 bg-white hover:border-indigo-500 transition">5</button>
+                        <button onclick="setTeamCount(6)" class="team-count-btn w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-slate-200 bg-white hover:border-indigo-500 transition">6</button>
+                    </div>
+                </div>
+
+                <!-- Custom Team Names Inputs -->
+                <div id="teamInputsContainer" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <!-- JS will populate input fields here dynamically -->
+                </div>
+
+                <button onclick="startGame()" class="btn-bounce mt-8 w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-heading font-bold text-lg rounded-2xl shadow-lg shadow-indigo-200 flex items-center justify-center gap-3">
+                    <span>Launch Mission Quest</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div id="gameScreen" class="hidden space-y-6">
+            
+            <!-- TOP STATS BAR -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <!-- Question Progress Indicator -->
+                <div class="lg:col-span-3 glass-card rounded-2xl p-5 border border-white flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                            Mission Progress
+                        </span>
+                        <span class="font-heading font-bold text-slate-700 text-lg">
+                            Question <span id="currentQNum" class="text-indigo-600">1</span> of <span id="totalQNum">12</span>
+                        </span>
+                    </div>
+                    <!-- Visual Progress Bar -->
+                    <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500" style="width: 8.33%;"></div>
+                    </div>
+                </div>
+
+                <!-- Current Active Team Turn Highlight -->
+                <div class="glass-card rounded-2xl p-5 border-2 border-indigo-500 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-heading font-bold text-xl shadow-md shadow-indigo-200" id="turnBadge">
+                        T1
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-indigo-600 uppercase tracking-wide">Active Turn</div>
+                        <div id="turnTeamName" class="font-heading font-bold text-slate-800 text-lg truncate max-w-[140px]">Alpha Squad</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN GAME GRID: QUESTION AREA + LEADERBOARD -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left: Question & Answers (8 cols) -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- Question Card -->
+                    <div id="questionCard" class="glass-card rounded-3xl p-6 sm:p-8 border border-white relative overflow-hidden transition-all duration-300">
+                        <!-- Context Tag -->
+                        <div class="flex items-center gap-2 mb-4">
+                            <span id="questionCategory" class="px-3 py-1 bg-purple-100 text-purple-700 font-bold text-xs rounded-lg uppercase tracking-wider">
+                                Sandwich Process
+                            </span>
+                            <span class="text-xs text-slate-400">• Sequence Challenge</span>
+                        </div>
+
+                        <!-- Prompt Text -->
+                        <h2 id="questionText" class="font-heading text-xl sm:text-2xl font-bold text-slate-800 leading-snug mb-6">
+                            Which sequence connector best completes the step?
+                        </h2>
+
+                        <!-- Interactive Options Grid -->
+                        <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- JS injected options buttons -->
+                        </div>
+
+                        <!-- Feedback Banner -->
+                        <div id="feedbackBox" class="hidden mt-6 p-4 rounded-2xl border flex items-start gap-3 transition-all duration-300">
+                            <div id="feedbackIcon" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white mt-0.5"></div>
+                            <div>
+                                <h4 id="feedbackTitle" class="font-heading font-bold text-base"></h4>
+                                <p id="feedbackText" class="text-sm mt-0.5"></p>
+                            </div>
+                        </div>
+
+                        <!-- Question Control Action Row -->
+                        <div class="mt-8 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                            <!-- Teacher Explanation Bonus Button -->
+                            <div class="flex items-center gap-2">
+                                <button id="bonusBtn" onclick="awardBonus()" disabled class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-amber-200 transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                    <span>+3 XP Explanation Bonus</span>
+                                </button>
+                                <span id="bonusBadge" class="hidden text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full">Awarded!</span>
+                            </div>
+
+                            <!-- Next Question Navigation -->
+                            <button id="nextBtn" onclick="nextQuestion()" disabled class="btn-bounce px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-heading font-bold text-sm sm:text-base rounded-xl shadow-md shadow-indigo-200 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                                <span>Next Mission</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Leaderboard & Teacher Controls (4 cols) -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="glass-card rounded-3xl p-6 border border-white">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                            <h3 class="font-heading font-bold text-lg text-slate-800 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <span>Leaderboard</span>
+                            </h3>
+                            <span class="text-xs font-semibold text-slate-400">Live XP</span>
+                        </div>
+
+                        <!-- Team Cards Stack -->
+                        <div id="leaderboardList" class="space-y-3">
+                            <!-- JS dynamic team cards -->
+                        </div>
+
+                        <!-- Manual Teacher Override Section -->
+                        <div class="mt-6 pt-4 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Teacher Manual Score Adjust</label>
+                            <div class="flex gap-2">
+                                <select id="manualTeamSelect" class="bg-slate-100 text-xs font-semibold rounded-xl px-3 py-2 border border-slate-200 flex-grow focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <!-- JS populated options -->
+                                </select>
+                                <button onclick="adjustScore(1)" class="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl transition">+1</button>
+                                <button onclick="adjustScore(-1)" class="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs rounded-xl transition">-1</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RESULTS / PODIUM SCREEN -->
+        <div id="resultsScreen" class="hidden max-w-4xl mx-auto space-y-8">
+            <!-- Header Banner -->
+            <div class="glass-card rounded-3xl p-8 text-center border border-white relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full blur-3xl opacity-50"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-200 rounded-full blur-3xl opacity-50"></div>
+
+                <div class="relative z-10">
+                    <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs uppercase tracking-widest rounded-full shadow-sm">
+                        Mission Debriefing
+                    </span>
+                    <h2 class="font-heading text-4xl sm:text-5xl font-bold text-slate-800 mt-3">
+                        Sequence Masters Crowned!
+                    </h2>
+                    <p class="text-slate-600 mt-2 text-base">Outstanding teamwork in restoring order to all mission scenarios.</p>
+                </div>
+            </div>
+
+            <!-- Podium Visuals -->
+            <div id="podiumContainer" class="grid grid-cols-3 gap-4 items-end pt-6 min-h-[260px]">
+                <!-- JS dynamic podium display -->
+            </div>
+
+            <!-- Full Ranked Table -->
+            <div class="glass-card rounded-3xl p-6 border border-white">
+                <h3 class="font-heading font-bold text-xl text-slate-800 mb-4">Final XP Standings</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase">
+                                <th class="pb-3 pl-4">Rank</th>
+                                <th class="pb-3">Team Name</th>
+                                <th class="pb-3 text-right pr-4">Total XP Earned</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finalTableBody" class="divide-y divide-slate-100 text-sm font-medium">
+                            <!-- JS dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Controls (Print, Download, Restart) -->
+            <div class="flex flex-wrap items-center justify-center gap-4 no-print">
+                <button onclick="downloadResults()" class="btn-bounce px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold rounded-2xl shadow-lg shadow-emerald-200 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>Download TXT Report</span>
+                </button>
+
+                <button onclick="window.print()" class="btn-bounce px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-heading font-bold rounded-2xl shadow-lg shadow-slate-300 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    <span>Print Summary</span>
+                </button>
+
+                <button onclick="resetGameModal()" class="btn-bounce px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-heading font-bold rounded-2xl shadow-lg shadow-indigo-200 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Start New Game</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white/80 border-t border-slate-200 py-4 text-center text-xs text-slate-500 no-print mt-8">
+        <p>Sequence Quest: The Order Masters • Gamified Pedagogy for ESL / EFL Classrooms</p>
+    </footer>
+
+    <!-- MODAL: CONNECTOR TOOLKIT -->
+    <div id="toolkitModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-white shadow-2xl relative animate-fade-in">
+            <button onclick="toggleToolkit()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-amber-100 text-amber-700 rounded-2xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-xl text-slate-800">Sequence Connector Toolkit</h3>
+                    <p class="text-xs text-slate-500">Quick Guide for Mission Coordinators</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3">
+                    <span class="font-heading font-bold text-blue-700 w-24 flex-shrink-0">First</span>
+                    <p class="text-xs text-blue-900">Introduces the <strong>very first step</strong> or opening action in a process.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-100 flex items-start gap-3">
+                    <span class="font-heading font-bold text-indigo-700 w-24 flex-shrink-0">Next</span>
+                    <p class="text-xs text-indigo-900">Introduces the <strong>immediately following step</strong> in a sequence.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-purple-50 border border-purple-100 flex items-start gap-3">
+                    <span class="font-heading font-bold text-purple-700 w-24 flex-shrink-0">Then</span>
+                    <p class="text-xs text-purple-900">Indicates what happens <strong>afterward</strong> in the progression.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-pink-50 border border-pink-100 flex items-start gap-3">
+                    <span class="font-heading font-bold text-pink-700 w-24 flex-shrink-0">After that</span>
+                    <p class="text-xs text-pink-900">Connects to a <strong>subsequent action</strong> following a prior event.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
+                    <span class="font-heading font-bold text-emerald-700 w-24 flex-shrink-0">Finally</span>
+                    <p class="text-xs text-emerald-900">Introduces the <strong>final or concluding step</strong> of a task.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="toggleToolkit()" class="w-full py-3 bg-slate-800 text-white font-heading font-bold rounded-xl hover:bg-slate-900 transition">
+                    Got it, Return to Mission
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME ENGINE -->
+    <script>
+        /* ==========================================================================
+           1. QUESTION BANK & CURRICULUM DATA
+           ========================================================================== */
+        const questionsData = [
+            {
+                id: 1,
+                category: "Sandwich Recipe",
+                prompt: "Read the process: _____ take two slices of fresh bread. Next, spread peanut butter. Finally, close the sandwich.",
+                options: ["First", "Finally", "After that", "Then"],
+                correct: 0,
+                explanation: "'First' introduces the opening step of the process."
+            },
+            {
+                id: 2,
+                category: "Fruit Preparation",
+                prompt: "First, select fresh apples from the basket. _____, wash them thoroughly under cold running water.",
+                options: ["Finally", "Next", "First", "Last"],
+                correct: 1,
+                explanation: "'Next' follows 'First' to present the second immediate step."
+            },
+            {
+                id: 3,
+                category: "Planting Seeds",
+                prompt: "First, dig a small hole in the soil. Next, place the seed inside. _____, cover it gently with dirt.",
+                options: ["First", "Then", "Finally", "In conclusion"],
+                correct: 1,
+                explanation: "'Then' moves the sequence forward after the initial steps."
+            },
+            {
+                id: 4,
+                category: "Morning Routine",
+                prompt: "First, my alarm rings at 6:00 AM. Next, I stretch and get out of bed. _____, I brush my teeth and wash my face.",
+                options: ["After that", "First", "Finally", "To start"],
+                correct: 0,
+                explanation: "'After that' links subsequent routine actions smoothly."
+            },
+            {
+                id: 5,
+                category: "Sending an Email",
+                prompt: "First, open your email client. Next, type the recipient address. Then, write your message. _____, click the send button.",
+                options: ["First", "Next", "Finally", "Then"],
+                correct: 2,
+                explanation: "'Finally' signals the very last action of the sequence."
+            },
+            {
+                id: 6,
+                category: "Preparing Pasta",
+                prompt: "First, boil water in a pot. Next, add the pasta. Then, cook for 8 minutes. _____, drain the water and serve.",
+                options: ["First", "Next", "Finally", "Earlier"],
+                correct: 2,
+                explanation: "'Finally' introduces the concluding serving step."
+            },
+            {
+                id: 7,
+                category: "Online Research",
+                prompt: "_____ log in to the school library portal. Next, enter your search keywords.",
+                options: ["Then", "First", "Finally", "After that"],
+                correct: 1,
+                explanation: "'First' starts the instructions for logging in."
+            },
+            {
+                id: 8,
+                category: "Washing Hands",
+                prompt: "First, wet your hands. Next, apply soap and rub for 20 seconds. _____, rinse thoroughly with warm water.",
+                options: ["Then", "First", "Finally", "To summarize"],
+                correct: 0,
+                explanation: "'Then' indicates what step occurs immediately after applying soap."
+            },
+            {
+                id: 9,
+                category: "Class Project",
+                prompt: "First, brainstorm ideas with your group. Next, outline your main points. _____, prepare your presentation slides.",
+                options: ["First", "After that", "Finally", "At last"],
+                correct: 1,
+                explanation: "'After that' connects to preparing slides following the outline step."
+            },
+            {
+                id: 10,
+                category: "Making Tea",
+                prompt: "First, boil water. Next, place a teabag in a mug. Then, pour the hot water. _____, add honey and enjoy!",
+                options: ["First", "Next", "Finally", "Then"],
+                correct: 2,
+                explanation: "'Finally' denotes the last step of adding honey and enjoying."
+            },
+            {
+                id: 11,
+                category: "Ordering Steps",
+                prompt: "Which sequence connector is specifically reserved for introducing the absolute last step of a process?",
+                options: ["Next", "Then", "First", "Finally"],
+                correct: 3,
+                explanation: "'Finally' is specifically reserved for the last step."
+            },
+            {
+                id: 12,
+                category: "Library Book Loan",
+                prompt: "First, choose a book from the shelf. _____, take it to the checkout counter.",
+                options: ["Finally", "Next", "First", "At the end"],
+                correct: 1,
+                explanation: "'Next' follows 'First' in standard sequential order."
+            }
+        ];
+
+        /* Motivational Quotes for Feedback */
+        const praiseMessages = [
+            "Outstanding logic! Mission progressing smoothly!",
+            "Excellent sequence order! XP points secured!",
+            "Spot on! You are becoming true Order Masters!",
+            "Perfect deduction! The team is moving ahead!",
+            "Brilliant English skills! Keep up the momentum!"
+        ];
+
+        /* Default Colors for Teams */
+        const teamColors = [
+            { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-500', light: 'bg-indigo-50' },
+            { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-500', light: 'bg-emerald-50' },
+            { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-500', light: 'bg-amber-50' },
+            { bg: 'bg-rose-500', text: 'text-rose-600', border: 'border-rose-500', light: 'bg-rose-50' },
+            { bg: 'bg-purple-500', text: 'text-purple-600', border: 'border-purple-500', light: 'bg-purple-50' },
+            { bg: 'bg-cyan-500', text: 'text-cyan-600', border: 'border-cyan-500', light: 'bg-cyan-50' }
+        ];
+
+        /* ==========================================================================
+           2. GAME STATE MANAGEMENT
+           ========================================================================== */
+        let gameState = {
+            selectedTeamCount: 4,
+            teams: [],
+            currentQuestionIdx: 0,
+            activeTeamIdx: 0,
+            answeredCurrent: false,
+            bonusAwarded: false,
+            soundEnabled: true
+        };
+
+        /* Sound FX Generator via Web Audio API (100% Offline Compatible) */
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+                    osc.frequency.exponentialRampToValueAtTime(130.81, ctx.currentTime + 0.2); // C3
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'bonus') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            } catch (e) {
+                // Audio context fallbacks handled gracefully
+            }
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            document.getElementById('soundIconOn').classList.toggle('hidden', !gameState.soundEnabled);
+            document.getElementById('soundIconOff').classList.toggle('hidden', gameState.soundEnabled);
+        }
+
+        /* ==========================================================================
+           3. SETUP & TEAM REGISTRATION LOGIC
+           ========================================================================== */
+        function setTeamCount(count) {
+            gameState.selectedTeamCount = count;
+            const buttons = document.querySelectorAll('.team-count-btn');
+            buttons.forEach(btn => {
+                if (parseInt(btn.innerText) === count) {
+                    btn.className = "team-count-btn active w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200 transition";
+                } else {
+                    btn.className = "team-count-btn w-12 h-12 rounded-xl font-heading font-bold text-lg border-2 border-slate-200 bg-white hover:border-indigo-500 transition";
+                }
+            });
+            renderTeamInputs();
+        }
+
+        function renderTeamInputs() {
+            const container = document.getElementById('teamInputsContainer');
+            container.innerHTML = '';
+
+            const defaultNames = ["Alpha Squad", "Beta Cyber", "Gamma Force", "Delta Knights", "Echo Rangers", "Omega Masters"];
+
+            for (let i = 0; i < gameState.selectedTeamCount; i++) {
+                const color = teamColors[i];
+                container.innerHTML += `
+                    <div class="p-3 bg-white rounded-2xl border border-slate-200 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl ${color.bg} text-white font-heading font-bold flex items-center justify-center text-sm shadow-sm">
+                            T${i+1}
+                        </div>
+                        <input type="text" id="teamNameInput_${i}" value="${defaultNames[i]}" placeholder="Team ${i+1} Name" 
+                            class="w-full text-sm font-semibold text-slate-700 focus:outline-none bg-transparent">
+                    </div>
+                `;
+            }
+        }
+
+        function startGame() {
+            gameState.teams = [];
+            for (let i = 0; i < gameState.selectedTeamCount; i++) {
+                const nameInput = document.getElementById(`teamNameInput_${i}`);
+                const name = nameInput && nameInput.value.trim() !== '' ? nameInput.value.trim() : `Team ${i+1}`;
+                gameState.teams.push({
+                    id: i,
+                    name: name,
+                    xp: 0,
+                    color: teamColors[i]
+                });
+            }
+
+            gameState.currentQuestionIdx = 0;
+            gameState.activeTeamIdx = 0;
+
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+
+            document.getElementById('totalQNum').innerText = questionsData.length;
+            
+            updateTeacherSelect();
+            renderLeaderboard();
+            loadQuestion();
+        }
+
+        /* ==========================================================================
+           4. GAMEPLAY & QUESTION LOGIC
+           ========================================================================== */
+        function loadQuestion() {
+            gameState.answeredCurrent = false;
+            gameState.bonusAwarded = false;
+
+            const q = questionsData[gameState.currentQuestionIdx];
+
+            // Update Header progress
+            document.getElementById('currentQNum').innerText = gameState.currentQuestionIdx + 1;
+            const progressPercent = ((gameState.currentQuestionIdx + 1) / questionsData.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+            // Active Team indicator update
+            const activeTeam = gameState.teams[gameState.activeTeamIdx];
+            document.getElementById('turnBadge').innerText = `T${activeTeam.id + 1}`;
+            document.getElementById('turnBadge').className = `w-12 h-12 rounded-xl ${activeTeam.color.bg} text-white flex items-center justify-center font-heading font-bold text-xl shadow-md`;
+            document.getElementById('turnTeamName').innerText = activeTeam.name;
+
+            // Question Details
+            document.getElementById('questionCategory').innerText = q.category;
+            document.getElementById('questionText').innerText = q.prompt;
+
+            // Options Grid
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                grid.innerHTML += `
+                    <button onclick="selectOption(${idx})" id="optBtn_${idx}" 
+                        class="btn-bounce w-full p-4 text-left bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl font-semibold text-slate-700 transition flex items-center justify-between group">
+                        <span class="text-base">${opt}</span>
+                        <span class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-indigo-100 group-hover:text-indigo-600 flex items-center justify-center text-xs font-bold text-slate-400 transition">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                    </button>
+                `;
+            });
+
+            // Feedback box reset
+            const fbBox = document.getElementById('feedbackBox');
+            fbBox.className = 'hidden mt-6 p-4 rounded-2xl border flex items-start gap-3 transition-all duration-300';
+            
+            // Button states
+            document.getElementById('bonusBtn').disabled = true;
+            document.getElementById('bonusBadge').classList.add('hidden');
+            document.getElementById('nextBtn').disabled = true;
+
+            renderLeaderboard();
+        }
+
+        function selectOption(optionIdx) {
+            if (gameState.answeredCurrent) return; // Prevent re-clicks
+            gameState.answeredCurrent = true;
+
+            const q = questionsData[gameState.currentQuestionIdx];
+            const isCorrect = (optionIdx === q.correct);
+            const activeTeam = gameState.teams[gameState.activeTeamIdx];
+
+            const fbBox = document.getElementById('feedbackBox');
+            const fbIcon = document.getElementById('feedbackIcon');
+            const fbTitle = document.getElementById('feedbackTitle');
+            const fbText = document.getElementById('feedbackText');
+            const qCard = document.getElementById('questionCard');
+
+            // Disable all option buttons
+            q.options.forEach((_, idx) => {
+                const btn = document.getElementById(`optBtn_${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('btn-bounce', 'hover:border-indigo-400');
+                
+                if (idx === q.correct) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                } else if (idx === optionIdx && !isCorrect) {
+                    btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            if (isCorrect) {
+                playSound('correct');
+                activeTeam.xp += 10;
+                qCard.classList.add('correct-anim');
+                setTimeout(() => qCard.classList.remove('correct-anim'), 600);
+
+                fbBox.className = 'mt-6 p-4 rounded-2xl border border-emerald-200 bg-emerald-50/90 text-emerald-900 flex items-start gap-3';
+                fbIcon.className = 'w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold flex-shrink-0';
+                fbIcon.innerHTML = '✓';
+                fbTitle.innerText = `Correct! +10 XP for ${activeTeam.name}`;
+                
+                const randomPraise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+                fbText.innerText = `${randomPraise} ${q.explanation}`;
+
+                // Enable bonus option for teacher
+                document.getElementById('bonusBtn').disabled = false;
+            } else {
+                playSound('wrong');
+                qCard.classList.add('incorrect-anim');
+                setTimeout(() => qCard.classList.remove('incorrect-anim'), 500);
+
+                fbBox.className = 'mt-6 p-4 rounded-2xl border border-rose-200 bg-rose-50/90 text-rose-900 flex items-start gap-3';
+                fbIcon.className = 'w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold flex-shrink-0';
+                fbIcon.innerHTML = '✕';
+                fbTitle.innerText = `Incorrect Turn`;
+                fbText.innerText = `The right connector was "${q.options[q.correct]}". ${q.explanation}`;
+            }
+
+            fbBox.classList.remove('hidden');
+            document.getElementById('nextBtn').disabled = false;
+            renderLeaderboard();
+        }
+
+        function awardBonus() {
+            if (gameState.bonusAwarded || !gameState.answeredCurrent) return;
+            gameState.bonusAwarded = true;
+            
+            playSound('bonus');
+            const activeTeam = gameState.teams[gameState.activeTeamIdx];
+            activeTeam.xp += 3;
+
+            document.getElementById('bonusBtn').disabled = true;
+            document.getElementById('bonusBadge').classList.remove('hidden');
+            renderLeaderboard();
+        }
+
+        function nextQuestion() {
+            if (gameState.currentQuestionIdx < questionsData.length - 1) {
+                gameState.currentQuestionIdx++;
+                // Rotate active team turn
+                gameState.activeTeamIdx = (gameState.activeTeamIdx + 1) % gameState.teams.length;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        /* ==========================================================================
+           5. LEADERBOARD & TEACHER CONTROLS
+           ========================================================================== */
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+
+            // Copy array to display ranked view in real-time
+            const sorted = [...gameState.teams].sort((a, b) => b.xp - a.xp);
+
+            sorted.forEach((team) => {
+                const isActive = (team.id === gameState.teams[gameState.activeTeamIdx].id && !document.getElementById('gameScreen').classList.contains('hidden'));
+                
+                list.innerHTML += `
+                    <div class="p-3 rounded-2xl border transition-all flex items-center justify-between ${isActive ? 'bg-indigo-50 border-indigo-300 shadow-sm ring-2 ring-indigo-400/20' : 'bg-white border-slate-100'}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl ${team.color.bg} text-white font-heading font-bold text-xs flex items-center justify-center shadow-sm">
+                                T${team.id + 1}
+                            </div>
+                            <div>
+                                <h4 class="font-heading font-bold text-sm text-slate-800 ${isActive ? 'text-indigo-900' : ''}">${team.name}</h4>
+                                ${isActive ? '<span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Current Turn</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-heading font-bold text-base text-slate-800">${team.xp}</span>
+                            <span class="text-xs font-semibold text-slate-400"> XP</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateTeacherSelect() {
+            const select = document.getElementById('manualTeamSelect');
+            select.innerHTML = '';
+            gameState.teams.forEach(t => {
+                select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+            });
+        }
+
+        function adjustScore(delta) {
+            const select = document.getElementById('manualTeamSelect');
+            const teamId = parseInt(select.value);
+            const team = gameState.teams.find(t => t.id === teamId);
+            if (team) {
+                team.xp = Math.max(0, team.xp + delta);
+                renderLeaderboard();
+            }
+        }
+
+        /* ==========================================================================
+           6. END-OF-GAME & RESULTS SCREEN
+           ========================================================================== */
+        function showResults() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+
+            playSound('correct');
+
+            const sorted = [...gameState.teams].sort((a, b) => b.xp - a.xp);
+            
+            // Render Podium
+            const podiumContainer = document.getElementById('podiumContainer');
+            podiumContainer.innerHTML = '';
+
+            // Standard 3-position podium layout order: 2nd (Left), 1st (Center), 3rd (Right)
+            const podiumPositions = [
+                sorted[1] || null, // 2nd Place
+                sorted[0] || null, // 1st Place
+                sorted[2] || null  // 3rd Place
+            ];
+
+            const podiumHeights = ['h-36', 'h-48', 'h-28'];
+            const podiumRanks = ['2nd Place', '1st Champion', '3rd Place'];
+            const podiumBGs = ['bg-slate-200 border-slate-300', 'bg-amber-100 border-amber-300 shadow-xl shadow-amber-100', 'bg-amber-800/10 border-amber-900/20'];
+
+            podiumPositions.forEach((team, idx) => {
+                if (!team) {
+                    podiumContainer.innerHTML += `<div></div>`;
+                    return;
+                }
+                const isWinner = (idx === 1);
+                podiumContainer.innerHTML += `
+                    <div class="flex flex-col items-center justify-end">
+                        <div class="text-center mb-2">
+                            <span class="font-heading font-bold text-sm ${isWinner ? 'text-amber-600 text-base' : 'text-slate-600'}">${team.name}</span>
+                            <div class="text-xs font-bold text-slate-400">${team.xp} XP</div>
+                        </div>
+                        <div class="w-full ${podiumHeights[idx]} ${podiumBGs[idx]} rounded-t-2xl border-t-4 border-x flex flex-col items-center justify-center p-2 relative">
+                            ${isWinner ? '<span class="text-3xl mb-1">👑</span>' : ''}
+                            <span class="font-heading font-bold text-xs uppercase tracking-wider text-slate-600">${podiumRanks[idx]}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Full Results Table
+            const tbody = document.getElementById('finalTableBody');
+            tbody.innerHTML = '';
+            sorted.forEach((team, idx) => {
+                tbody.innerHTML += `
+                    <tr class="${idx === 0 ? 'bg-amber-50/50 font-bold' : ''}">
+                        <td class="py-3 pl-4">
+                            <span class="w-6 h-6 rounded-full inline-flex items-center justify-center text-xs font-heading font-bold ${idx === 0 ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'}">
+                                ${idx + 1}
+                            </span>
+                        </td>
+                        <td class="py-3 text-slate-800">${team.name}</td>
+                        <td class="py-3 text-right pr-4 text-indigo-600 font-bold">${team.xp} XP</td>
+                    </tr>
+                `;
+            });
+        }
+
+        /* ==========================================================================
+           7. TOOLKIT & EXPORT FEATURES
+           ========================================================================== */
+        function toggleToolkit() {
+            document.getElementById('toolkitModal').classList.toggle('hidden');
+        }
+
+        function downloadResults() {
+            const sorted = [...gameState.teams].sort((a, b) => b.xp - a.xp);
+            let textContent = `=========================================\n`;
+            textContent += `  SEQUENCE QUEST: THE ORDER MASTERS REPORT \n`;
+            textContent += `=========================================\n\n`;
+            textContent += `Date: ${new Date().toLocaleDateString()}\n`;
+            textContent += `Total Challenges Completed: ${questionsData.length}\n\n`;
+            textContent += `FINAL LEADERBOARD STANDINGS:\n`;
+            textContent += `-----------------------------------------\n`;
+
+            sorted.forEach((team, idx) => {
+                textContent += `Rank ${idx + 1}: ${team.name.padEnd(20)} - ${team.xp} XP\n`;
+            });
+
+            textContent += `\n-----------------------------------------\n`;
+            textContent += `Winner: ${sorted[0] ? sorted[0].name : 'N/A'}\n`;
+            textContent += `Great job Coordinators!\n`;
+
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Sequence_Quest_Results_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function resetGameModal() {
+            if (confirm("Are you sure you want to restart and set up new teams?")) {
+                document.getElementById('resultsScreen').classList.add('hidden');
+                document.getElementById('gameScreen').classList.add('hidden');
+                document.getElementById('setupScreen').classList.remove('hidden');
+                setTeamCount(4);
+            }
+        }
+
+        // Initialize setup inputs on page load
+        window.onload = function() {
+            setTeamCount(4);
+        };
+    </script>
+</body>
+</html>
